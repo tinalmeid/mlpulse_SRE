@@ -18,6 +18,12 @@ from sklearn.linear_model import LinearRegression
 import joblib
 import os
 import logging
+import boto3
+from botocore.exceptions import ClientError
+
+# Bucket S3 para persistir o modelo
+S3_BUCKET = "mlpulse-models-511197442274"
+S3_MODEL_KEY = "models/model.pkl"
 
 # ── Configuração de Logging ───────────────────────────────────
 logging.basicConfig(
@@ -95,14 +101,23 @@ class HealthResponse(BaseModel):
 # ── Funções de Suporte (SRP) ──────────────────────────────────
 def _save_model(model: LinearRegression) -> None:
     """
-    Persiste o modelo treinado em disco.
+    Persiste o modelo treinado em disco e faz upload para o S3.
 
     Args:
         model: Instância treinada do LinearRegression.
     """
+    # Salvar local
     os.makedirs("models", exist_ok=True)
     joblib.dump(model, MODEL_PATH)
-    logger.info("Modelo salvo em %s", MODEL_PATH)
+    logger.info("Modelo salvo localmente em %s", MODEL_PATH)
+
+    # Upload para S3
+    try:
+        s3 = boto3.client("s3")
+        s3.upload_file(MODEL_PATH, S3_BUCKET, S3_MODEL_KEY)
+        logger.info("Modelo enviado para s3://%s/%s", S3_BUCKET, S3_MODEL_KEY)
+    except ClientError as error:
+        logger.error("Erro ao enviar modelo para S3: %s", error)
 
 
 def _train_model(x_values: list[float], y_values: list[float]) -> LinearRegression:
