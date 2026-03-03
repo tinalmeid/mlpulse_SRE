@@ -1,0 +1,40 @@
+# Ambiente virtual
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Modelos treinados (gerados em runtime)
+models/*.pkl
+
+# Variáveis de ambiente e segredos
+.env
+.env.*
+*.env
+
+# VS Code
+.vscode/
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfplan
+.terraform.lock.hcl
+
+# Logs
+*.log
+
+# Coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# SO
+.DS_Store
+Thumbs.db
