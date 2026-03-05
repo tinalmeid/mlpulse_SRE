@@ -46,23 +46,27 @@ com observabilidade completa, IaC e pipeline CI/CD.
 ### Instalação
 
 1. **Clone o repositório:**
+
 ```bash
    git clone https://github.com/tinalmeid/mlpulse
    cd mlpulse
 ```
 
 2. **Crie o ambiente virtual:**
+
 ```bash
    python -m venv .venv
    source .venv/bin/activate
 ```
 
 3. **Instale as dependências:**
+
 ```bash
    pip install -r requirements.txt
 ```
 
 4. **Rode a API:**
+
 ```bash
    uvicorn app.main:app --reload
 ```
@@ -75,15 +79,16 @@ com observabilidade completa, IaC e pipeline CI/CD.
 
 ## 📡 Endpoints
 
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| GET | `/health` | Status da API e do modelo |
-| GET | `/metrics` | Métricas para o Prometheus |
-| POST | `/train` | Treina o modelo com dados enviados |
-| POST | `/predict` | Retorna predições do modelo |
-| GET | `/history` | Histórico de predições (banco RDS) |
+| Método | Endpoint   | Descrição                          |
+| ------ | ---------- | ---------------------------------- |
+| GET    | `/health`  | Status da API e do modelo          |
+| GET    | `/metrics` | Métricas para o Prometheus         |
+| POST   | `/train`   | Treina o modelo com dados enviados |
+| POST   | `/predict` | Retorna predições do modelo        |
+| GET    | `/history` | Histórico de predições (banco RDS) |
 
 ### Exemplo de uso
+
 ```bash
 # Treinar
 curl -X POST http://localhost:8000/train \
@@ -99,6 +104,7 @@ curl -X POST http://localhost:8000/predict \
 ---
 
 ## 🧪 Testes
+
 ```bash
 pytest tests/ -v
 ```
@@ -106,6 +112,7 @@ pytest tests/ -v
 ---
 
 ## 🏗️ Estrutura do Projeto
+
 ```text
 mlpulse/
 ├── .github/
@@ -130,22 +137,25 @@ mlpulse/
 
 ## 🗺️ Roadmap
 
-| Fase | Descrição | Status |
-|------|-----------|--------|
-| **S0** | Ambiente + API local + testes | 🚧 Em andamento |
-| **M1** | Deploy AWS (EC2, S3, RDS) | 📅 Planejado |
-| **M3** | IaC Terraform + CI/CD | 📅 Planejado |
-| **M2** | Observabilidade (Prometheus + Grafana) | 📅 Planejado |
-| **M4** | SLOs + Runbooks + Portfolio | 📅 Planejado |
+| Fase      | Descrição                                     | Status          |
+| --------- | --------------------------------------------- | --------------- |
+| **S0**    | Ambiente + API local + testes                 | ✅ Concluído    |
+| **CI/CD** | GitHub Actions + SonarCloud + Quality Gate    | ✅ Concluído    |
+| **M1**    | Deploy AWS — EC2 + S3 ✅ · RDS 🚧             | 🚧 Em andamento |
+| **M3**    | IaC Terraform + GitOps                        | 📅 Planejado    |
+| **M2**    | Observabilidade (Prometheus + Grafana + Loki) | 📅 Planejado    |
+| **M4**    | SLOs + Runbooks + Portfolio                   | 📅 Planejado    |
 
 ---
 
 ## 📝 Padrões de Desenvolvimento
 
 ### Branching Strategy
+
 - `MLP-XXX-tipo/descricao` — Ex: `MLP-001-feat/api-health-endpoint`
 
 ### Conventional Commits
+
 - `feat`: Nova funcionalidade
 - `fix`: Correção de bug
 - `chore`: Configuração e manutenção
@@ -154,6 +164,7 @@ mlpulse/
 - `refactor`: Melhoria sem alterar funcionalidade
 
 ### Quality Gate
+
 - Cobertura mínima: 80%
 - Zero bugs e vulnerabilidades no SonarCloud
 - Nenhum código entra na main sem passar no CI
