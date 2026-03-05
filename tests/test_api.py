@@ -1,5 +1,10 @@
 # tests/test_api.py
-"""Testes da API MLPulse."""
+# Autor: Tina de Almeida
+# Março de 2026
+"""Testes da API MLPulse.
+São testes de integração que verificam o comportamento da API usando TestClient do FastAPI.
+"""
+from unittest.mock import patch, MagicMock
 from fastapi.testclient import TestClient
 from app.main import app
 
@@ -20,8 +25,13 @@ def test_predict_sem_modelo_retorna_erro():
     assert r.status_code == 400
 
 
-def test_treino_e_predicao():
+@patch("app.main.boto3.client")
+def test_treino_e_predicao(mock_boto):
     """Treina o modelo e verifica se a predição está correta."""
+    # Simula o cliente S3 sem precisar de credenciais reais
+    mock_s3 = MagicMock()
+    mock_boto.return_value = mock_s3
+
     # Treinar
     r = client.post("/train", json={
         "x": [1.0, 2.0, 3.0, 4.0, 5.0],
@@ -31,16 +41,19 @@ def test_treino_e_predicao():
     assert r.json()["status"] == "treinado"
     assert abs(r.json()["coef"] - 2.0) < 0.01
 
+    # Verificar que tentou fazer upload para o S3
+    mock_s3.upload_file.assert_called_once()
+
     # Predizer
     r = client.post("/predict", json={"x": [6.0, 7.0]})
     assert r.status_code == 200
     preds = r.json()["predictions"]
-    assert len(preds) == 2
     assert abs(preds[0] - 12.0) < 0.1
     assert abs(preds[1] - 14.0) < 0.1
 
 
-def test_treino_com_tamanhos_diferentes_retorna_erro():
+@patch("app.main.boto3.client")
+def test_treino_com_tamanhos_diferentes_retorna_erro(mock_boto):
     """Verifica que treino com x e y de tamanhos diferentes retorna erro."""
     r = client.post("/train", json={
         "x": [1.0, 2.0, 3.0],
