@@ -106,15 +106,20 @@ def _save_model(model: LinearRegression) -> None:
     Args:
         model: Instância treinada do LinearRegression.
     """
-    # Salvar local
+    # Salva localmente
     os.makedirs("models", exist_ok=True)
     joblib.dump(model, MODEL_PATH)
     logger.info("Modelo salvo localmente em %s", MODEL_PATH)
 
-    # Upload para S3
     try:
+        # Envia o modelo para o S3 (sem expor credenciais no código)
         s3 = boto3.client("s3")
-        s3.upload_file(MODEL_PATH, S3_BUCKET, S3_MODEL_KEY)
+        s3.upload_file(
+            MODEL_PATH,
+            S3_BUCKET,
+            S3_MODEL_KEY,
+            ExtraArgs={"ExpectedBucketOwner": boto3.client("sts").get_caller_identity()["Account"]}
+        )
         logger.info("Modelo enviado para s3://%s/%s", S3_BUCKET, S3_MODEL_KEY)
     except ClientError as error:
         logger.error("Erro ao enviar modelo para S3: %s", error)
@@ -172,7 +177,7 @@ def _get_model() -> LinearRegression:
 
 
 # ── Endpoints ────────────────────────────────────────────────
-@app.get("/health", response_model=HealthResponse, tags=["Monitoramento"])
+@app.get("/health", tags=["Monitoramento"])
 def health_check() -> HealthResponse:
     """
     Verifica se a API está respondendo e se o modelo está carregado.
@@ -187,10 +192,16 @@ def health_check() -> HealthResponse:
     )
 
 
-@app.post("/train", response_model=TrainResponse, tags=["Modelo"])
+@app.post(
+    "/train",
+    tags=["Modelo"],
+    responses={
+        422: {"description": "x e y com tamanhos diferentes"}
+    }
+)
 def train(request: TrainRequest) -> TrainResponse:
     """
-    Treina o modelo com os dados fornecidos e persiste em disco.
+    Treina o modelo com os dados fornecidos e persiste em disco e S3.
 
     Args:
         request: Dados de treino com listas x (features) e y (target).
@@ -218,7 +229,13 @@ def train(request: TrainRequest) -> TrainResponse:
     )
 
 
-@app.post("/predict", response_model=PredictResponse, tags=["Modelo"])
+@app.post(
+    "/predict",
+    tags=["Modelo"],
+    responses={
+        400: {"description": "Modelo não treinado"}
+    }
+)
 def predict(request: PredictRequest) -> PredictResponse:
     """
     Gera predições usando o modelo treinado.
@@ -233,10 +250,8 @@ def predict(request: PredictRequest) -> PredictResponse:
         HTTPException 400: Se o modelo não estiver treinado.
     """
     model = _get_model()
-
     X = np.array(request.x).reshape(-1, 1)
     predictions = model.predict(X).tolist()
-
     logger.info("Predição gerada para %d valores", len(request.x))
 
     return PredictResponse(
