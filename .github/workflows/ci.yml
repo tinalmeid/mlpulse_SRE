@@ -64,13 +64,6 @@ jobs:
           name: coverage-report
           path: .
 
-      - name: 🔍 Debug — verificar coverage.xml
-        run: |
-          echo "=== Arquivos na raiz ==="
-          ls -la
-          echo "=== Conteúdo do coverage.xml (primeiras 5 linhas) ==="
-          head -5 coverage.xml || echo "ARQUIVO NÃO ENCONTRADO"
-
       - name: 🚀 Analisar com SonarCloud
         uses: SonarSource/sonarcloud-github-action@v2
         env:
